@@ -2,6 +2,7 @@ package com.mygdx.game
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.PerspectiveCamera
@@ -14,6 +15,21 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
 
+class World {
+    var blocks = List(5) { x ->
+        List(5) { y ->
+            List(5) { z ->
+                (1..2).random()
+            }
+        }
+    }
+
+    fun renderBlocks() {
+        TODO()
+    }
+}
+
+
 class CubeExample : ApplicationAdapter() {
 
     private lateinit var camera: PerspectiveCamera
@@ -21,6 +37,10 @@ class CubeExample : ApplicationAdapter() {
     private lateinit var environment: Environment
     private lateinit var cubeModel: Model
     private lateinit var cubeInstance: ModelInstance
+
+    private var world = World()
+
+    private val tmpVec = Vector3()
 
     override fun create() {
         // ModelBatch is responsible for batching and rendering 3D models
@@ -53,14 +73,19 @@ class CubeExample : ApplicationAdapter() {
             // Material color and usage (positions, normals)
             com.badlogic.gdx.graphics.g3d.Material(ColorAttribute.createDiffuse(Color.GREEN)),
             (com.badlogic.gdx.graphics.VertexAttributes.Usage.Position or
-                    com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal).toLong()
+                com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal).toLong()
         )
 
         // Create an instance of the model so we can position/rotate/scale it
         cubeInstance = ModelInstance(cubeModel)
+
+        Gdx.input.isCursorCatched = true
+        //Gdx.input.setCursorPosition(centerX, centerY)
     }
 
     override fun render() {
+        handleInput()
+
         // Clear the screen with a dark gray color
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
@@ -71,12 +96,46 @@ class CubeExample : ApplicationAdapter() {
         // Start rendering with modelBatch
         modelBatch.begin(camera)
 
-        // Render our cube with specific transformations
-        // x, y, z, rotationX, rotationY, rotationZ
-        renderCube(0f, 0f, 0f, 0f, Gdx.graphics.deltaTime * 50f, 0f)
+        // TODO should be moved to the world.renderBlocks()
+        for (x in 0..<5) {
+            for (y in 0..<5) {
+                for (z in 0..<5) {
+                    if (world.blocks[x][y][z] == 1)
+                        renderCube(x.toFloat(), y.toFloat(), z.toFloat(), 0f, Gdx.graphics.deltaTime * 50f, 0f)
+                }
+            }
+        }
 
-        // Finish rendering
         modelBatch.end()
+    }
+
+    private fun handleInput() {
+        val speed = 5f * Gdx.graphics.deltaTime
+
+
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+            camera.position.add(tmpVec.set(camera.direction).scl(speed))
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            camera.position.add(tmpVec.set(camera.direction).scl(-speed))
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            camera.position.add(tmpVec.set(camera.direction).crs(camera.up).nor().scl(-speed))
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            camera.position.add(tmpVec.set(camera.direction).crs(camera.up).nor().scl(speed))
+        }
+
+        // handle mouse
+        val sensetivity = 0.2f
+        val deltaX = Gdx.input.deltaX.toFloat() * sensetivity
+        val deltaY = Gdx.input.deltaY.toFloat() * sensetivity
+
+        camera.rotate(Vector3.Y, -deltaX)
+
+        if (camera.direction.x -deltaY in -85f..85f)
+            camera.rotate(Vector3.X, -deltaY)
     }
 
     override fun dispose() {

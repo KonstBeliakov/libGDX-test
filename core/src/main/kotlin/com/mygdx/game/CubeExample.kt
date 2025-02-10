@@ -3,14 +3,10 @@ package com.mygdx.game
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.GL20
-import com.badlogic.gdx.graphics.PerspectiveCamera
-import com.badlogic.gdx.graphics.g3d.Environment
-import com.badlogic.gdx.graphics.g3d.Model
-import com.badlogic.gdx.graphics.g3d.ModelBatch
-import com.badlogic.gdx.graphics.g3d.ModelInstance
+import com.badlogic.gdx.graphics.*
+import com.badlogic.gdx.graphics.g3d.*
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
@@ -66,18 +62,18 @@ class CubeExample : ApplicationAdapter() {
             update()
         }
 
-        // Use ModelBuilder to create a simple cube
+        val texture = Texture(Gdx.files.internal("grass.png"))
+        val material = Material(TextureAttribute.createDiffuse(texture))
+
+        // Creating a model of the cube
         val modelBuilder = ModelBuilder()
-        cubeModel = modelBuilder.createBox(
-            1f, 1f, 1f,               // width, height, depth of the cube
-            // Material color and usage (positions, normals)
-            com.badlogic.gdx.graphics.g3d.Material(ColorAttribute.createDiffuse(Color.GREEN)),
-            (com.badlogic.gdx.graphics.VertexAttributes.Usage.Position or
-                com.badlogic.gdx.graphics.VertexAttributes.Usage.Normal).toLong()
+        val model: Model = modelBuilder.createBox(
+            1f, 1f, 1f, // size of the cube
+            material,                  // material with a texture
+            (VertexAttributes.Usage.Position or VertexAttributes.Usage.Normal or VertexAttributes.Usage.TextureCoordinates).toLong()
         )
 
-        // Create an instance of the model so we can position/rotate/scale it
-        cubeInstance = ModelInstance(cubeModel)
+        cubeInstance = ModelInstance(model)
 
         Gdx.input.isCursorCatched = true
         //Gdx.input.setCursorPosition(centerX, centerY)
